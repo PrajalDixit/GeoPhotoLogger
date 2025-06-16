@@ -77,7 +77,6 @@ const Login = () => {
       setConfirm(confirmation);
       setIsCodeSent(true);
       setResendTimer(30);
-      Alert.alert('OTP Sent', `Verification code sent to +91 ${formatPhoneNumber(cleanedPhone)}`);
     } catch (error) {
       console.error('Phone auth error:', error);
       Alert.alert('Error', 'Failed to send OTP. Please try again.');

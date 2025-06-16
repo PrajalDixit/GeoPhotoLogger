@@ -48,7 +48,6 @@ const PhotoListScreen = () => {
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Photo Gallery</Text>
           <Text style={styles.headerSubtitle}>
@@ -83,7 +82,6 @@ const PhotoListScreen = () => {
           ))}
         </ScrollView>
 
-        {/* Floating Camera Button */}
         <TouchableOpacity 
           style={styles.fab}
           onPress={() => navigation.navigate('CameraScreen')}
@@ -122,7 +120,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingBottom: 100, // Space for camera button
+    paddingBottom: 100,
   },
   touchable: {
     width: '100%',
@@ -146,7 +144,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
   },
-  // Floating Action Button
   fab: {
     position: 'absolute',
     bottom: 24,

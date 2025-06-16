@@ -119,7 +119,7 @@ const CameraScreen = ({navigation}: any) => {
         Alert.alert('Location error', error.message);
         setIsLocationLoading(false);
       },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+      {enableHighAccuracy: true, timeout: 150000, maximumAge: 10000},
     );
   };
 
