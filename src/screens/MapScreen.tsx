@@ -1,21 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Image, Text, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Image, Text, ActivityIndicator, Alert } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 
 const MapScreen = ({ route }: any) => {
-  const { latitude, longitude, imageUrl, timestamp } = route.params;
+  const { latitude, longitude, imageUrl, timestamp } = route.params;  
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (!imageUrl || imageUrl.trim() === '') {
+      setImageError(true);
+      setLoading(false);
+    } else {
+      setLoading(false);
+    }
+  }, [imageUrl]);
 
   const handleImageLoad = () => {
     setImageLoaded(true);
     setImageError(false);
+    setLoading(false);
   };
 
   const handleImageError = (error: any) => {
     setImageError(true);
     setImageLoaded(false);
+    setLoading(false);
+  };
+
+  const renderMarkerContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.hybridFallback}>
+          <ActivityIndicator size="small" color="#fff" />
+        </View>
+      );
+    }
+
+    if (imageError || !imageUrl) {
+      return (
+        <View style={styles.hybridFallback}>
+          <Text style={styles.fallbackText}>📷</Text>
+        </View>
+      );
+    }
+
+    return (
+      <Image 
+        source={{ uri: imageUrl }} 
+        style={styles.hybridMarkerImage}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
+        onLoadStart={() => {
+          setLoading(true);
+        }}
+        onLoadEnd={() => {
+          setLoading(false);
+        }}
+        resizeMode="cover"
+      />
+    );
   };
 
   const renderHybridMarker = () => (
@@ -30,31 +75,23 @@ const MapScreen = ({ route }: any) => {
     >
       <View style={styles.hybridMarkerContainer}>
         <View style={styles.hybridImageContainer}>
-          {imageUrl ? (
-            <Image 
-              source={{ uri: imageUrl }} 
-              style={styles.hybridMarkerImage}
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              resizeMode="cover"
-            />
-          ) : (
-            <View style={styles.hybridFallback}>
-              <Text style={styles.fallbackText}>📷</Text>
-            </View>
-          )}
+          {renderMarkerContent()}
         </View>
         <View style={styles.markerPin} />
       </View>
       
       <Callout tooltip style={styles.callout}>
         <View style={styles.calloutContainer}>
-          {imageUrl && (
+          {imageUrl && !imageError ? (
             <Image 
               source={{ uri: imageUrl }} 
               style={styles.calloutImage}
               resizeMode="cover"
             />
+          ) : (
+            <View style={[styles.calloutImage, { backgroundColor: '#f0f0f0', justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={{ fontSize: 30 }}>📷</Text>
+            </View>
           )}
           <View style={styles.calloutTextContainer}>
             <Text style={styles.calloutText}>🕒 {timestamp}</Text>
@@ -82,6 +119,16 @@ const MapScreen = ({ route }: any) => {
       >
         {renderHybridMarker()}
       </MapView>
+      
+      {/* Debug info overlay */}
+      <View style={styles.debugOverlay}>
+        <Text style={styles.debugText}>
+          Image URL: {imageUrl ? 'Present' : 'Missing'}
+        </Text>
+        <Text style={styles.debugText}>
+          Status: {loading ? 'Loading' : imageError ? 'Error' : imageLoaded ? 'Loaded' : 'Ready'}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -93,7 +140,18 @@ const styles = StyleSheet.create({
   map: { 
     flex: 1 
   },
-  // Simple marker image (Approach 1)
+  debugOverlay: {
+    position: 'absolute',
+    top: 50,
+    left: 10,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    padding: 10,
+    borderRadius: 5,
+  },
+  debugText: {
+    color: 'white',
+    fontSize: 12,
+  },
   simpleMarkerImage: {
     width: 50,
     height: 50,
@@ -122,8 +180,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   calloutImage: {
-    width: 20,
-    height: 12,
+    width: 200,
+    height: 120,
     borderRadius: 8,
     marginBottom: 8,
     backgroundColor: '#f0f0f0',
@@ -137,7 +195,6 @@ const styles = StyleSheet.create({
     marginTop: 3,
     textAlign: 'center',
   },
-  // Hybrid marker styles (Approach 4)
   hybridMarkerContainer: {
     alignItems: 'center',
   },
@@ -156,13 +213,13 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   hybridMarkerImage: {
-    width: 44,
-    height: 44,
+    width: '100%', 
+    height: '100%', 
     borderRadius: 22,
   },
   hybridFallback: {
-    width: 44,
-    height: 44,
+    width: '100%', 
+    height: '100%', 
     borderRadius: 22,
     backgroundColor: '#007AFF',
     justifyContent: 'center',

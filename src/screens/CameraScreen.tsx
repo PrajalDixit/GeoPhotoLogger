@@ -23,6 +23,7 @@ import Geolocation from '@react-native-community/geolocation';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import RNFS from 'react-native-fs';
+import ImageResizer from 'react-native-image-resizer';
 
 const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
 
@@ -123,34 +124,43 @@ const CameraScreen = ({navigation}: any) => {
     );
   };
 
-  const uploadToFirestoreOnly = async () => {
-    if (!imageUri || !location) {
-      Alert.alert('Missing data', 'Image and location are required');
-      return;
-    }
+const uploadToFirestoreOnly = async () => {
+  if (!imageUri || !location) {
+    Alert.alert('Missing data', 'Image and location are required');
+    return;
+  }
 
-    setIsUploading(true);
-    try {
-      const base64 = await RNFS.readFile(imageUri.replace('file://', ''), 'base64');
-      const uid = auth().currentUser?.uid || 'test_user';
+  setIsUploading(true);
+  try {
+    const resizedImage = await ImageResizer.createResizedImage(
+      imageUri,
+      300,
+      300,
+      'JPEG',
+      50
+    );
 
-      await firestore().collection('photos').add({
-        image: base64,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-        location,
-        uid,
-      });
+    const base64 = await RNFS.readFile(resizedImage.uri.replace('file://', ''), 'base64');
+    const uid = auth().currentUser?.uid || 'test_user';
 
-      Alert.alert('✅ Upload Successful');
-      setImageUri(null);
-      navigation.navigate('PhotoListScreen');
-    } catch (error: any) {
-      console.error('❌ Upload error:', error);
-      Alert.alert('❌ Upload Failed', error.message || 'Unknown error');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    await firestore().collection('photos').add({
+      image: base64,
+      timestamp: firestore.FieldValue.serverTimestamp(),
+      location,
+      uid,
+    });
+
+    Alert.alert('✅ Upload Successful');
+    setImageUri(null);
+    navigation.navigate('PhotoListScreen');
+  } catch (error: any) {
+    console.error('❌ Upload error:', error);
+    Alert.alert('❌ Upload Failed', error.message || 'Unknown error');
+  } finally {
+    setIsUploading(false);
+  }
+};
+
 
   useEffect(() => {
     getCurrentLocation();

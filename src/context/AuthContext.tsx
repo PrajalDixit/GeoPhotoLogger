@@ -12,7 +12,7 @@ const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
 
 useEffect(() => {
 const subscriber = auth().onAuthStateChanged(setUser);
-return subscriber; // unsubscribe on unmount
+return subscriber; 
 }, []);
 
 return (
